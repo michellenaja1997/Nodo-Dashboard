@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nodo · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white: #fff;
+  --paper: #faf9f7;
+  --off: #f2f0ec;
+  --border: rgba(0,0,0,0.08);
+  --border-med: rgba(0,0,0,0.13);
+  --ink: #111;
+  --ink-dim: rgba(17,17,17,0.5);
+  --ink-faint: rgba(17,17,17,0.28);
+  --green: #1c4f32;
+  --green-light: rgba(28,79,50,0.07);
+  --green-mid: rgba(28,79,50,0.18);
+  --red: #b83232;
+  --red-light: rgba(184,50,50,0.07);
+  --amber: #a07510;
+  --amber-light: rgba(160,117,16,0.08);
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+html, body { height: 100%; background: var(--paper); color: var(--ink); font-family: var(--sans); font-weight: 300; overflow: hidden; }
+
+/* TOPBAR */
+.topbar { height: 52px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+.logo { display: flex; align-items: center; gap: 7px; }
+.logo-text { font-family: var(--serif); font-weight: 700; font-size: 18px; letter-spacing: 0.15em; text-transform: uppercase; }
+.logo-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+.top-stats { display: flex; align-items: center; gap: 18px; }
+.top-stat { text-align: center; }
+.top-val { font-family: var(--mono); font-size: 13px; }
+.top-val.g { color: var(--green); font-weight: 400; }
+.top-lbl { font-family: var(--mono); font-size: 8px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.1em; }
+.top-div { width: 1px; height: 22px; background: var(--border); }
+.top-right { display: flex; align-items: center; gap: 12px; }
+.date-lbl { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.08em; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; cursor: pointer; }
+.edit-btn { padding: 5px 12px; border-radius: 4px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border: 1px solid var(--border-med); background: transparent; color: var(--ink-dim); transition: all 0.15s; }
+.edit-btn:hover { background: var(--off); }
+.edit-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+/* LAYOUT */
+.app { display: grid; grid-template-columns: 252px 1fr 276px; height: calc(100vh - 52px); margin-top: 52px; }
+
+/* SIDEBAR */
+.sidebar { background: var(--white); border-right: 1px solid var(--border); overflow-y: auto; }
+.sidebar::-webkit-scrollbar { width: 0; }
+
+.sb-block { padding: 18px 18px; border-bottom: 1px solid var(--border); }
+.block-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; color: var(--ink-faint); text-transform: uppercase; margin-bottom: 12px; }
+
+/* Stats grid */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(0,0,0,0.07); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+.stat-cell { background: var(--white); padding: 12px 10px; }
+.stat-num { font-family: var(--serif); font-size: 24px; font-weight: 700; line-height: 1; }
+.stat-num.g { color: var(--green); }
+.stat-num.r { color: var(--red); }
+.stat-unit { font-family: var(--mono); font-size: 8px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.stat-label { font-size: 10px; color: var(--ink-dim); margin-top: 3px; }
+
+.prog-wrap { margin-top: 2px; }
+.prog-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.prog-lbl { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+.prog-val { font-family: var(--mono); font-size: 9px; color: var(--green); }
+.prog-bar { height: 3px; background: var(--off); border-radius: 3px; }
+.prog-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.5s ease; }
+
+/* Projects */
+.project-item { padding: 11px 0; border-bottom: 1px solid rgba(17,17,17,0.07); cursor: pointer; }
+.project-item:last-child { border-bottom: none; padding-bottom: 0; }
+.project-item:first-child { padding-top: 0; }
+.proj-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.proj-name { font-family: var(--serif); font-size: 13px; font-style: italic; }
+.proj-pct { font-family: var(--mono); font-size: 10px; }
+.proj-pct.g { color: var(--green); }
+.proj-pct.a { color: var(--amber); }
+.proj-pct.r { color: var(--red); }
+.proj-bar { height: 2px; background: var(--off); border-radius: 2px; margin-bottom: 5px; }
+.proj-fill { height: 100%; border-radius: 2px; opacity: 0.85; transition: width 0.5s ease; }
+.proj-meta { display: flex; justify-content: space-between; }
+.proj-dead { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); }
+.proj-ct { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); }
+
+/* CENTER */
+.center { display: flex; flex-direction: column; background: var(--paper); overflow: hidden; }
+
+.center-header { padding: 16px 24px 14px; background: var(--white); border-bottom: 1px solid var(--border); }
+.center-title { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+.center-sub { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 3px; letter-spacing: 0.06em; }
+
+.center-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+.center-body::-webkit-scrollbar { width: 0; }
+
+/* Daily card */
+.daily-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.daily-card-title { font-family: var(--serif); font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+.energy-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.energy-big { font-family: var(--serif); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1; }
+.energy-info { }
+.energy-lbl { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.1em; }
+.energy-phrase { font-size: 13px; color: var(--ink-dim); margin-top: 3px; }
+
+/* TMI */
+.tmi-label { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px; }
+.tmi-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(17,17,17,0.06); cursor: pointer; }
+.tmi-item:last-child { border-bottom: none; padding-bottom: 0; }
+.tmi-item:first-child { padding-top: 0; }
+.tmi-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border-med); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.tmi-check.done { background: var(--green); border-color: var(--green); }
+.tmi-check.done::after { content: ''; width: 5px; height: 8px; border: 1.5px solid white; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+.tmi-text { flex: 1; font-size: 13px; line-height: 1.5; transition: color 0.2s; }
+.tmi-text.done { color: var(--ink-faint); text-decoration: line-through; }
+.tmi-tag { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Hachazo */
+.hachazo-card { background: var(--green-light); border: 1px solid var(--green-mid); border-left: 3px solid var(--green); border-radius: 0 12px 12px 0; padding: 14px 16px; }
+.hax-tag { font-family: var(--mono); font-size: 9px; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
+.hax-text { font-size: 13px; color: var(--ink); line-height: 1.5; }
+.timer-btn { margin-top: 12px; width: 100%; padding: 9px; background: var(--green); color: white; border: none; border-radius: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; }
+.timer-btn:hover { opacity: 0.85; }
+
+/* Sapo */
+.sapo-card { background: var(--red-light); border: 1px solid rgba(184,50,50,0.12); border-left: 3px solid var(--red); border-radius: 0 12px 12px 0; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.sapo-icon { font-size: 18px; }
+.sapo-lbl { font-family: var(--mono); font-size: 9px; color: var(--red); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+.sapo-text { font-size: 12px; color: var(--ink-dim); }
+
+/* Chat link */
+.chat-link-card { background: var(--ink); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: opacity 0.2s; text-decoration: none; }
+.chat-link-card:hover { opacity: 0.85; }
+.chat-link-left { }
+.chat-link-title { font-family: var(--serif); font-size: 14px; font-weight: 700; color: white; margin-bottom: 3px; }
+.chat-link-sub { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; }
+.chat-link-arrow { color: white; font-size: 20px; opacity: 0.6; }
+
+/* RIGHT PANEL */
+.right-panel { background: var(--white); border-left: 1px solid var(--border); overflow-y: auto; }
+.right-panel::-webkit-scrollbar { width: 0; }
+.rp-block { padding: 18px 18px; border-bottom: 1px solid var(--border); }
+
+/* Week */
+.week-strip { display: flex; gap: 4px; }
+.wd { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.wd-lbl { font-family: var(--mono); font-size: 8px; color: var(--ink-faint); text-transform: uppercase; }
+.wd-num { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-weight: 700; font-size: 13px; border: 1px solid var(--border); color: var(--ink-dim); background: var(--paper); transition: all 0.2s; }
+.wd-num.done { background: var(--green-light); border-color: var(--green-mid); color: var(--green); }
+.wd-num.today { background: var(--ink); border-color: var(--ink); color: white; }
+.wd-num.future { opacity: 0.3; }
+
+/* Alert */
+.alert-card { background: var(--amber-light); border: 1px solid rgba(160,117,16,0.15); border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 10px; font-size: 11px; line-height: 1.5; }
+.alert-card strong { color: var(--amber); }
+
+/* Deliveries */
+.delivery { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(17,17,17,0.05); }
+.delivery:last-child { border-bottom: none; }
+.del-date { width: 34px; flex-shrink: 0; }
+.del-num { font-family: var(--serif); font-size: 20px; font-weight: 700; line-height: 1; }
+.del-mon { font-family: var(--mono); font-size: 8px; color: var(--ink-faint); text-transform: uppercase; }
+.del-info { flex: 1; }
+.del-name { font-size: 12px; color: var(--ink); margin-bottom: 2px; }
+.del-proj { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); }
+.del-tag { padding: 2px 6px; border-radius: 3px; font-family: var(--mono); font-size: 9px; flex-shrink: 0; margin-top: 2px; }
+.tag-u { background: var(--red-light); color: var(--red); border: 1px solid rgba(184,50,50,0.14); }
+.tag-o { background: var(--green-light); color: var(--green); border: 1px solid var(--green-mid); }
+
+/* Burnout */
+.burnout-card { background: var(--off); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 14px; }
+.burnout-num { font-family: var(--serif); font-size: 40px; font-weight: 700; color: var(--green); line-height: 1; }
+.burnout-lbl { font-family: var(--mono); font-size: 8px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+.burnout-status { font-size: 12px; color: var(--green); font-weight: 500; margin-bottom: 3px; }
+.burnout-desc { font-size: 11px; color: var(--ink-dim); line-height: 1.5; }
+
+/* EDIT MODE */
+.edit-field { background: rgba(28,79,50,0.06); border: 1px solid var(--green-mid); border-radius: 6px; padding: 4px 8px; font-family: var(--mono); font-size: 12px; color: var(--ink); width: 100%; outline: none; margin-top: 4px; }
+.edit-field:focus { border-color: var(--green); }
+.edit-hint { font-family: var(--mono); font-size: 9px; color: var(--green); margin-top: 6px; text-align: center; letter-spacing: 0.06em; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: white; padding: 10px 20px; border-radius: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <span class="logo-text">Nodo</span>
+    <div class="logo-dot"></div>
+  </div>
+  <div class="top-stats">
+    <div class="top-stat">
+      <div class="top-val g" id="top-efectividad">78%</div>
+      <div class="top-lbl">efectividad</div>
+    </div>
+    <div class="top-div"></div>
+    <div class="top-stat">
+      <div class="top-val" id="top-racha">7</div>
+      <div class="top-lbl">racha días</div>
+    </div>
+    <div class="top-div"></div>
+    <div class="top-stat">
+      <div class="top-val g" id="top-alertas">0</div>
+      <div class="top-lbl">alertas burnout</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="date-lbl" id="today-date"></span>
+    <button class="edit-btn" id="editToggle" onclick="toggleEdit()">✎ Editar</button>
+    <div class="avatar">M</div>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="sb-block">
+      <div class="block-label">Resumen semanal</div>
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <div class="stat-num g" id="stat-efectividad">78%</div>
+          <div class="stat-unit">efectividad</div>
+          <div class="stat-label">metas logradas</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num" id="stat-tareas">11</div>
+          <div class="stat-unit">tareas</div>
+          <div class="stat-label">completadas</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num" id="stat-planeadas">14</div>
+          <div class="stat-unit">planeadas</div>
+          <div class="stat-label">esta semana</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num g" id="stat-alertas">0</div>
+          <div class="stat-unit">alertas</div>
+          <div class="stat-label">sin burnout</div>
+        </div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-row">
+          <span class="prog-lbl">progreso</span>
+          <span class="prog-val" id="prog-label">11 / 14</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:78%"></div></div>
+      </div>
+    </div>
+
+    <div class="sb-block">
+      <div class="block-label">Proyectos</div>
+      <div id="projects-list"></div>
+    </div>
+
+  </aside>
+
+  <!-- CENTER -->
+  <main class="center">
+    <div class="center-header">
+      <div class="center-title">Daily Briefing</div>
+      <div class="center-sub" id="center-date"></div>
+    </div>
+
+    <div class="center-body">
+
+      <!-- Energy + TMI -->
+      <div class="daily-card">
+        <div class="daily-card-title">
+          <span>Hoy</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-weight:300" id="energy-display">Energía: 7/10</span>
+        </div>
+
+        <div class="tmi-label">3 TMI de hoy</div>
+        <div id="tmi-list"></div>
+      </div>
+
+      <!-- Hachazo -->
+      <div class="hachazo-card">
+        <div class="hax-tag">⚡ Hachazo del día</div>
+        <div class="hax-text" id="hachazo-text">GRŌ Fase 2 — 30 min: definir precios de cada tier del value ladder. Abre un doc, escribe los 5 niveles con precio y resultado. Sin diseño todavía.</div>
+        <button class="timer-btn" id="timerBtn" onclick="startTimer()">▶ Iniciar 30 min</button>
+      </div>
+
+      <!-- Sapo -->
+      <div class="sapo-card">
+        <div class="sapo-icon">🐸</div>
+        <div>
+          <div class="sapo-lbl">Sapo del día</div>
+          <div class="sapo-text" id="sapo-text">Revisar correo evento ponentes GRŌ — 3 min</div>
+        </div>
+      </div>
+
+      <!-- Chat link -->
+      <a class="chat-link-card" href="https://claude.ai" target="_blank">
+        <div class="chat-link-left">
+          <div class="chat-link-title">Hablarle a Nodo →</div>
+          <div class="chat-link-sub">Abre Claude · tu agente ya tiene todo el contexto</div>
+        </div>
+        <div class="chat-link-arrow">↗</div>
+      </a>
+
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+
+    <div class="rp-block">
+      <div class="block-label">Esta semana</div>
+      <div class="week-strip" id="week-strip"></div>
+    </div>
+
+    <div class="rp-block">
+      <div class="block-label">Próximas entregas</div>
+      <div class="alert-card"><strong>⚠ Lunes 9 mar:</strong> Pagos pendientes + carta traspaso Tigo.</div>
+      <div id="deliveries-list"></div>
+    </div>
+
+    <div class="rp-block">
+      <div class="block-label">Estado burnout</div>
+      <div class="burnout-card">
+        <div>
+          <div class="burnout-num" id="burnout-num">0</div>
+          <div class="burnout-lbl">alertas</div>
+        </div>
+        <div>
+          <div class="burnout-status">✓ Sin señales</div>
+          <div class="burnout-desc">Ritmo constante esta semana. Sin sobrecompromiso detectado.</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<div class="toast" id="toast">Guardado ✓</div>
+
+<script>
+// ── DATA ──
+let data = JSON.parse(localStorage.getItem('nodo-data') || 'null') || {
+  efectividad: 78,
+  tareas: 11,
+  planeadas: 14,
+  alertas: 0,
+  racha: 7,
+  energia: 7,
+  projects: [
+    { name: "GRŌ", pct: 25, done: 6, total: 20, deadline: "15 abr", color: "#1c4f32" },
+    { name: "Nodo (Luno)", pct: 50, done: 4, total: 12, deadline: "31 mar", color: "#1c4f32" },
+    { name: "Freelance", pct: 95, done: 5, total: 5, deadline: "al día", color: "#1c4f32" },
+    { name: "Certificación", pct: 35, done: 2, total: 6, deadline: "15 abr", color: "#a07510" },
+    { name: "DotCom Secrets", pct: 10, done: 1, total: 8, deadline: "mayo", color: "#a07510" },
+    { name: "Trading", pct: 20, done: 1, total: 2, deadline: "constancia", color: "#b83232" },
+  ],
+  tmi: [
+    { text: "GRŌ Fase 2 — Definir precios del value ladder", tag: "grō · hachazo", done: false },
+    { text: "Ajuste de prompt maestro de Nodo", tag: "nodo · alta prioridad", done: false },
+    { text: "Sesión de trading en demo 40 min", tag: "trading · pendiente", done: false },
+  ],
+  hachazo: "GRŌ Fase 2 — 30 min: definir precios de cada tier del value ladder. Abre un doc, escribe los 5 niveles con precio y resultado. Sin diseño todavía.",
+  sapo: "Revisar correo evento ponentes GRŌ — 3 min",
+  deliveries: [
+    { day: "09", mon: "mar", name: "Pagos + carta Tigo", urgency: "u", label: "2 días" },
+    { day: "11", mon: "mar", name: "Correo ponentes GRŌ", urgency: "u", label: "4 días" },
+    { day: "15", mon: "mar", name: "Informe Tejido Urbano", urgency: "o", label: "8 días" },
+    { day: "18", mon: "mar", name: "Informe Snapchat", urgency: "o", label: "11 días" },
+    { day: "31", mon: "mar", name: "Nodo beta usuarios", urgency: "o", label: "24 días" },
+  ],
+  week: [["L","2","done"],["M","3","done"],["M","4","done"],["J","5","done"],["V","6","done"],["S","7","today"],["D","8","future"]],
+};
+
+let editMode = false;
+
+function save() {
+  localStorage.setItem('nodo-data', JSON.stringify(data));
+  showToast();
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function toggleEdit() {
+  editMode = !editMode;
+  const btn = document.getElementById('editToggle');
+  btn.textContent = editMode ? '✓ Guardar' : '✎ Editar';
+  btn.classList.toggle('active', editMode);
+  if (!editMode) save();
+  render();
+}
+
+function render() {
+  // Topbar
+  document.getElementById('top-efectividad').textContent = data.efectividad + '%';
+  document.getElementById('top-racha').textContent = data.racha;
+  document.getElementById('top-alertas').textContent = data.alertas;
+
+  // Stats
+  document.getElementById('stat-efectividad').textContent = data.efectividad + '%';
+  document.getElementById('stat-tareas').textContent = data.tareas;
+  document.getElementById('stat-planeadas').textContent = data.planeadas;
+  document.getElementById('stat-alertas').textContent = data.alertas;
+  const pct = Math.round((data.tareas / data.planeadas) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = data.tareas + ' / ' + data.planeadas;
+
+  // Date
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('today-date').textContent = dateStr.toUpperCase();
+  document.getElementById('center-date').textContent = dateStr;
+  document.getElementById('energy-display').textContent = 'Energía: ' + data.energia + '/10';
+
+  // Projects
+  const pl = document.getElementById('projects-list');
+  pl.innerHTML = '';
+  data.projects.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'project-item';
+    if (editMode) {
+      el.innerHTML = `
+        <div class="proj-row">
+          <span class="proj-name">${p.name}</span>
+        </div>
+        <input class="edit-field" type="number" min="0" max="100" value="${p.pct}" placeholder="%" oninput="data.projects[${i}].pct=+this.value;renderProj(${i})">
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <input class="edit-field" type="number" min="0" value="${p.done}" placeholder="hechas" oninput="data.projects[${i}].done=+this.value" style="width:50%">
+          <input class="edit-field" type="number" min="0" value="${p.total}" placeholder="total" oninput="data.projects[${i}].total=+this.value" style="width:50%">
+        </div>
+      `;
+    } else {
+      const pctClass = p.color === '#1c4f32' ? 'g' : p.color === '#a07510' ? 'a' : 'r';
+      el.innerHTML = `
+        <div class="proj-row">
+          <span class="proj-name">${p.name}</span>
+          <span class="proj-pct ${pctClass}">${p.pct}%</span>
+        </div>
+        <div class="proj-bar"><div class="proj-fill" style="width:${p.pct}%;background:${p.color}"></div></div>
+        <div class="proj-meta">
+          <span class="proj-dead">→ ${p.deadline}</span>
+          <span class="proj-ct">${p.done}/${p.total}</span>
+        </div>
+      `;
+    }
+    pl.appendChild(el);
+  });
+
+  // TMI
+  const tl = document.getElementById('tmi-list');
+  tl.innerHTML = '';
+  data.tmi.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'tmi-item';
+    el.onclick = () => { if (!editMode) { data.tmi[i].done = !data.tmi[i].done; save(); render(); } };
+    if (editMode) {
+      el.innerHTML = `
+        <input class="edit-field" value="${item.text}" oninput="data.tmi[${i}].text=this.value" style="margin-top:0">
+      `;
+    } else {
+      el.innerHTML = `
+        <div class="tmi-check ${item.done ? 'done' : ''}"></div>
+        <div>
+          <div class="tmi-text ${item.done ? 'done' : ''}">${item.text}</div>
+          <div class="tmi-tag">${item.tag}</div>
+        </div>
+      `;
+    }
+    tl.appendChild(el);
+  });
+
+  // Hachazo & Sapo
+  if (editMode) {
+    document.getElementById('hachazo-text').innerHTML = `<textarea class="edit-field" rows="3" oninput="data.hachazo=this.value">${data.hachazo}</textarea>`;
+    document.getElementById('sapo-text').innerHTML = `<input class="edit-field" value="${data.sapo}" oninput="data.sapo=this.value">`;
+  } else {
+    document.getElementById('hachazo-text').textContent = data.hachazo;
+    document.getElementById('sapo-text').textContent = data.sapo;
+  }
+
+  // Energia edit
+  if (editMode) {
+    document.getElementById('energy-display').innerHTML = `<input class="edit-field" type="number" min="1" max="10" value="${data.energia}" oninput="data.energia=+this.value;document.getElementById('energy-display').querySelector('input').value=this.value" style="width:60px;text-align:center">`;
+  }
+
+  // Week
+  const ws = document.getElementById('week-strip');
+  ws.innerHTML = '';
+  data.week.forEach(([d, n, t]) => {
+    ws.innerHTML += `
+      <div class="wd">
+        <div class="wd-lbl">${d}</div>
+        <div class="wd-num ${t}">${n}</div>
+      </div>`;
+  });
+
+  // Deliveries
+  const dl = document.getElementById('deliveries-list');
+  dl.innerHTML = '';
+  data.deliveries.forEach(d => {
+    dl.innerHTML += `
+      <div class="delivery">
+        <div class="del-date">
+          <div class="del-num">${d.day}</div>
+          <div class="del-mon">${d.mon}</div>
+        </div>
+        <div class="del-info">
+          <div class="del-name">${d.name}</div>
+        </div>
+        <div class="del-tag ${d.urgency === 'u' ? 'tag-u' : 'tag-o'}">${d.label}</div>
+      </div>`;
+  });
+
+  // Burnout
+  document.getElementById('burnout-num').textContent = data.alertas;
+}
+
+function renderProj(i) {
+  // just re-renders fill bar live
+  render();
+}
+
+// Timer
+function startTimer() {
+  let secs = 1800;
+  const btn = document.getElementById('timerBtn');
+  btn.disabled = true;
+  const iv = setInterval(() => {
+    secs--;
+    const m = String(Math.floor(secs/60)).padStart(2,'0');
+    const s = String(secs%60).padStart(2,'0');
+    btn.textContent = `⏱ ${m}:${s}`;
+    if (secs <= 0) {
+      clearInterval(iv);
+      btn.textContent = '✓ Hachazo completado';
+      btn.style.background = '#2d6a4f';
+      btn.disabled = false;
+    }
+  }, 1000);
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
